@@ -32,21 +32,21 @@
         .neu-flat {
             background: var(--bg-color);
             box-shadow: 4px 4px 10px var(--shadow-dark), 
-                       -4px -4px 10px var(--shadow-light);
+                        -4px -4px 10px var(--shadow-light);
             border: 1px solid rgba(255,255,255,0.6);
         }
 
         .neu-pressed {
             background: var(--bg-color);
             box-shadow: inset 3px 3px 6px var(--shadow-dark), 
-                       inset -3px -3px 6px var(--shadow-light);
+                        inset -3px -3px 6px var(--shadow-light);
             border: 1px solid rgba(255,255,255,0.0);
         }
 
         .neu-btn {
             background: var(--bg-color);
             box-shadow: 4px 4px 8px var(--shadow-dark), 
-                       -4px -4px 8px var(--shadow-light);
+                        -4px -4px 8px var(--shadow-light);
             transition: all 0.2s ease;
             color: var(--accent);
             cursor: pointer;
@@ -61,7 +61,7 @@
         
         .neu-btn:active, .neu-btn.active {
             box-shadow: inset 2px 2px 4px var(--shadow-dark), 
-                       inset -2px -2px 4px var(--shadow-light);
+                        inset -2px -2px 4px var(--shadow-light);
             transform: translateY(1px);
         }
 
@@ -70,7 +70,7 @@
             color: white;
             text-shadow: 0 1px 1px rgba(0,0,0,0.1);
             box-shadow: 4px 4px 10px var(--shadow-dark), 
-                       -4px -4px 10px var(--shadow-light);
+                        -4px -4px 10px var(--shadow-light);
             cursor: pointer;
             border: none;
             display: flex;
@@ -90,7 +90,7 @@
         .neu-input {
             background: var(--bg-color);
             box-shadow: inset 3px 3px 6px var(--shadow-dark), 
-                       inset -3px -3px 6px var(--shadow-light);
+                        inset -3px -3px 6px var(--shadow-light);
             border: none;
             outline: none;
         }
@@ -126,7 +126,6 @@
 </head>
 <body class="h-screen flex flex-col overflow-hidden">
 
-    <!-- Header -->
     <header class="p-4 z-20 flex justify-between items-center h-16 neu-flat mx-4 mt-4 rounded-2xl mb-2 relative">
         <h1 class="text-xl font-bold tracking-tight text-[#258FAF]">TANGOOP</h1>
         <button onclick="window.openKeyModal()" class="text-xs text-gray-400 hover:text-blue-500 flex items-center gap-1 px-4 py-2 rounded-lg transition-colors cursor-pointer neu-btn border-none shadow-none active:shadow-inner">
@@ -134,10 +133,8 @@
         </button>
     </header>
 
-    <!-- Main Content Area -->
     <main id="app-container" class="flex-1 overflow-y-auto p-4 pb-24 relative scroll-smooth no-scrollbar">
         
-        <!-- API Key Modal -->
         <div id="apiKeyModal" class="fixed inset-0 bg-[#F8FAFC] bg-opacity-95 z-50 flex items-center justify-center hidden backdrop-blur-sm">
             <div class="neu-flat p-8 rounded-2xl w-11/12 max-w-md">
                 <h2 class="text-lg font-bold mb-2 text-[#258FAF]">APIキー設定</h2>
@@ -150,10 +147,8 @@
             </div>
         </div>
 
-        <!-- VIEW: SEARCH (Home) -->
         <div id="view-search" class="fade-in-anim">
             <div class="mb-8 mt-2">
-                <!-- Search Form -->
                 <div class="relative">
                     <input type="text" id="searchInput" placeholder="単語を入力 (例: Serendipity)" 
                            class="w-full neu-input p-4 pl-12 rounded-2xl text-lg transition-all text-[#258FAF] placeholder-gray-400"
@@ -169,17 +164,13 @@
                 </div>
             </div>
 
-            <!-- Loading State -->
             <div id="loading" class="hidden flex flex-col items-center justify-center py-10">
                 <div class="loader mb-4"></div>
                 <p class="text-sm text-gray-500 animate-pulse">AIが解析中...</p>
-                <p id="retry-msg" class="text-xs text-gray-400 mt-2 hidden">接続を再試行中...</p>
+                <p id="retry-msg" class="text-xs text-gray-400 mt-2 hidden">モデルを切り替えて再試行中...</p>
             </div>
 
-            <!-- Search Result Card -->
-            <!-- 初期状態では hidden。表示時にJSで fade-in-anim クラスを追加します -->
             <div id="resultCard" class="hidden neu-flat rounded-3xl overflow-hidden p-6 relative mb-8">
-                <!-- Actions -->
                 <div class="absolute top-6 right-6 flex space-x-3">
                     <button onclick="window.playAudio()" class="neu-btn w-10 h-10 rounded-full flex items-center justify-center text-[#258FAF]">
                         <i class="fas fa-volume-up"></i>
@@ -189,36 +180,29 @@
                     </button>
                 </div>
 
-                <!-- Word Header -->
                 <div class="mb-6 pr-20">
                     <h2 id="res-word" class="text-3xl font-bold text-[#258FAF] mb-1 break-words">Word</h2>
                     <p id="res-pronunciation" class="text-sm text-gray-500 font-mono tracking-wider">/pronunciation/</p>
                 </div>
 
-                <!-- Content Body -->
                 <div class="space-y-6">
-                    <!-- Definition -->
                     <div class="bg-gray-100 bg-opacity-50 rounded-xl p-3 border border-gray-100">
                         <span class="text-xs font-bold text-[#258FAF] opacity-70 mb-1 block">意味</span>
                         <p id="res-definition" class="text-lg font-bold text-gray-700 leading-relaxed">定義がここに表示されます。</p>
                     </div>
 
-                    <!-- Example -->
                     <div class="neu-pressed p-4 rounded-xl relative overflow-hidden">
                         <div class="absolute left-0 top-0 bottom-0 w-1 bg-[#258FAF] opacity-50"></div>
                         <span class="text-[10px] font-bold text-gray-400 uppercase mb-1 block pl-2">Example</span>
                         <p id="res-example" class="text-gray-600 italic pl-2 leading-relaxed">"Example sentence goes here."</p>
                     </div>
 
-                    <!-- Synonyms -->
                     <div>
                         <span class="text-xs font-bold text-gray-400 mb-2 block">類義語</span>
                         <div id="res-synonyms" class="flex flex-wrap gap-2">
-                            <!-- Tags injected here -->
-                        </div>
+                            </div>
                     </div>
 
-                    <!-- Usage Tips -->
                     <div class="pt-4 border-t border-gray-200 border-opacity-30">
                         <div class="flex items-start gap-2">
                             <i class="fas fa-info-circle text-[#258FAF] mt-1 text-xs"></i>
@@ -231,7 +215,6 @@
                 </div>
             </div>
             
-            <!-- Welcome Placeholder -->
             <div id="welcome-msg" class="text-center py-24 opacity-40 select-none pointer-events-none">
                 <div class="neu-flat w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-6 text-[#258FAF]">
                     <i class="fas fa-search text-4xl"></i>
@@ -241,12 +224,10 @@
             </div>
         </div>
 
-        <!-- VIEW: LIST (Bookmarks) -->
         <div id="view-list" class="hidden">
             <h2 class="text-xl font-bold mb-6 text-[#258FAF] ml-2">単語帳 <span id="list-count" class="text-sm font-normal text-gray-500 ml-2">(0)</span></h2>
             <div id="vocab-list" class="space-y-4 pb-8">
-                <!-- List items injected here -->
-            </div>
+                </div>
             <div id="empty-list-msg" class="text-center py-20 text-gray-400 hidden">
                 <div class="neu-pressed w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4">
                     <i class="fas fa-book-open text-3xl text-gray-300"></i>
@@ -255,7 +236,6 @@
             </div>
         </div>
 
-        <!-- VIEW: REVIEW (Test) -->
         <div id="view-review" class="hidden h-full flex flex-col">
             <div id="review-setup" class="flex-1 flex flex-col items-center justify-center text-center">
                 <div class="neu-flat w-40 h-40 rounded-full flex items-center justify-center mb-8 text-[#258FAF]">
@@ -269,10 +249,8 @@
             </div>
 
             <div id="review-card-container" class="hidden flex-1 flex flex-col items-center justify-center relative pb-4">
-                <!-- Flashcard -->
                 <div id="flashcard" class="w-full max-w-sm h-[420px] relative card-flip cursor-pointer group" onclick="window.flipCard()">
                     <div id="flashcard-inner" class="card-inner w-full h-full relative">
-                        <!-- Front -->
                         <div class="card-front absolute w-full h-full neu-flat rounded-3xl flex flex-col items-center justify-center p-8 text-center border-t border-white border-opacity-50">
                             <span class="absolute top-6 left-6 text-xs font-bold text-gray-400 tracking-widest">QUESTION</span>
                             <h2 id="test-word" class="text-4xl font-bold text-[#258FAF] mb-8 break-words w-full">Word</h2>
@@ -283,7 +261,6 @@
                             <p class="absolute bottom-6 text-xs text-gray-400 opacity-60">タップして答えを表示</p>
                         </div>
                         
-                        <!-- Back -->
                         <div class="card-back absolute w-full h-full neu-flat rounded-3xl flex flex-col items-center justify-center p-8 text-center border-t border-white border-opacity-50 bg-gradient-to-b from-[#F8FAFC] to-[#F1F5F9]">
                             <span class="absolute top-6 left-6 text-xs font-bold text-[#258FAF] tracking-widest">ANSWER</span>
                             <div class="flex-1 flex flex-col justify-center w-full">
@@ -298,7 +275,6 @@
                     </div>
                 </div>
 
-                <!-- Controls -->
                 <div id="review-controls" class="w-full max-w-sm flex space-x-4 mt-8 opacity-50 pointer-events-none transition-all duration-300">
                     <button onclick="window.nextCard(false)" class="flex-1 neu-btn py-4 rounded-2xl font-bold text-gray-500 hover:text-red-400">
                         <i class="fas fa-times mr-2"></i>忘れた
@@ -321,7 +297,6 @@
 
     </main>
 
-    <!-- Bottom Navigation -->
     <nav class="neu-flat h-20 rounded-t-3xl flex justify-around items-center z-20 pb-safe mx-0 absolute bottom-0 w-full">
         <button onclick="window.switchTab('search')" class="nav-btn flex flex-col items-center w-1/3 tab-active group cursor-pointer" data-target="search">
             <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-1 transition-all duration-200 group-[.tab-active]:neu-pressed">
@@ -423,8 +398,15 @@
             Return ONLY raw JSON. No markdown formatting.
             `;
 
-            // Try models in order: gemini-1.5-flash -> gemini-pro -> others
-            const models = ['gemini-1.5-flash', 'gemini-pro', 'gemini-1.5-pro', 'gemini-1.0-pro'];
+            const models = [
+                'gemini-1.5-flash', 
+                'gemini-1.5-flash-latest',
+                'gemini-1.5-pro',
+                'gemini-1.5-pro-latest',
+                'gemini-pro',
+                'gemini-1.0-pro'
+            ];
+            
             let success = false;
             let lastError = null;
 
@@ -476,11 +458,11 @@
                 let msg = lastError ? lastError.message : "Unknown error";
                 
                 if (msg.includes('API key') || msg.includes('400')) {
-                     alert('APIキーが無効です。\nGoogle AI Studioで作成したキーか確認してください。\n(Google CloudのVertex AIキーは使えません)');
+                      alert('APIキーが無効です。\nGoogle AI Studioで作成したキーか確認してください。');
                 } else if (msg.includes('Failed to fetch')) {
                     alert('通信エラーです。インターネット接続を確認してください。');
                 } else {
-                    alert(`検索できませんでした。\nエラー詳細: ${msg}`);
+                    alert(`全てのモデルで検索に失敗しました。\nエラー詳細: ${msg}`);
                 }
             }
             
@@ -497,7 +479,11 @@
 
             const synContainer = document.getElementById('res-synonyms');
             synContainer.innerHTML = '';
-            (data.synonyms || []).slice(0, 3).forEach(syn => {
+            
+            // 安全策: APIが配列ではなく文字列などを返してきてもクラッシュしないようにする
+            const synonyms = Array.isArray(data.synonyms) ? data.synonyms : [];
+            
+            synonyms.slice(0, 3).forEach(syn => {
                 const span = document.createElement('span');
                 span.className = 'neu-pressed px-3 py-1 rounded-lg text-xs text-gray-500';
                 span.textContent = syn;
