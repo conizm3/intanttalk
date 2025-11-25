@@ -6,7 +6,6 @@
     <title>TANGOOP</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- フォント変更: Noto Sans JP -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -23,7 +22,6 @@
         }
 
         body { 
-            /* フォント適用 */
             font-family: 'Noto Sans JP', 'Helvetica Neue', Arial, sans-serif; 
             -webkit-tap-highlight-color: transparent; 
             background-color: var(--bg-color);
@@ -53,6 +51,12 @@
             color: var(--accent);
             cursor: pointer;
             border: 1px solid rgba(255,255,255,0.5);
+            /* Touch target size fix */
+            min-width: 44px;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .neu-btn:active, .neu-btn.active {
@@ -69,12 +73,14 @@
                        -4px -4px 10px var(--shadow-light);
             cursor: pointer;
             border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .neu-btn-primary:active {
             box-shadow: inset 2px 2px 5px rgba(0,0,0,0.2);
             transform: translateY(1px);
         }
-        /* Loading時は押せないように */
         .neu-btn-primary:disabled {
             opacity: 0.6;
             cursor: not-allowed;
@@ -123,7 +129,8 @@
     <!-- Header -->
     <header class="p-4 z-20 flex justify-between items-center h-16 neu-flat mx-4 mt-4 rounded-2xl mb-2 relative">
         <h1 class="text-xl font-bold tracking-tight text-[#258FAF]">TANGOOP</h1>
-        <button id="headerKeyBtn" class="text-xs text-gray-400 hover:text-blue-500 flex items-center gap-1 px-3 py-2 rounded-lg transition-colors cursor-pointer neu-btn border-none shadow-none active:shadow-inner">
+        <!-- onclick属性を直接使用して確実に反応させる -->
+        <button onclick="window.openKeyModal()" class="text-xs text-gray-400 hover:text-blue-500 flex items-center gap-1 px-4 py-2 rounded-lg transition-colors cursor-pointer neu-btn border-none shadow-none active:shadow-inner">
             <i class="fas fa-key"></i> <span>Key設定</span>
         </button>
     </header>
@@ -137,7 +144,7 @@
                 <h2 class="text-lg font-bold mb-2 text-[#258FAF]">APIキー設定</h2>
                 <p class="text-sm text-gray-500 mb-6">Google AI StudioのAPIキーを入力してください。</p>
                 <input type="password" id="apiKeyInput" placeholder="API Key (AIza...)" class="w-full neu-input p-4 rounded-xl mb-6 text-gray-600 tracking-wider">
-                <button id="saveKeyBtn" class="w-full neu-btn-primary p-4 rounded-xl font-bold">保存して閉じる</button>
+                <button onclick="window.saveApiKey()" class="w-full neu-btn-primary p-4 rounded-xl font-bold">保存して閉じる</button>
                 <div class="text-xs text-center mt-6 space-y-2">
                     <p class="text-gray-400"><a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-[#258FAF]">APIキーを無料で取得する</a></p>
                 </div>
@@ -154,7 +161,7 @@
                            autocomplete="off">
                     <i class="fas fa-search absolute left-5 top-5 text-gray-400 pointer-events-none"></i>
                     
-                    <button id="triggerSearchBtn" class="absolute right-2 top-2 neu-btn-primary w-12 h-12 rounded-xl flex items-center justify-center transition-transform active:scale-95 cursor-pointer">
+                    <button id="triggerSearchBtn" onclick="window.handleSearch()" class="absolute right-2 top-2 neu-btn-primary w-12 h-12 rounded-xl flex items-center justify-center transition-transform active:scale-95 cursor-pointer">
                         <i class="fas fa-arrow-right"></i>
                     </button>
                 </div>
@@ -174,10 +181,10 @@
             <div id="resultCard" class="hidden neu-flat rounded-3xl overflow-hidden p-6 relative mb-8 fade-in">
                 <!-- Actions -->
                 <div class="absolute top-6 right-6 flex space-x-3">
-                    <button id="playAudioBtn" class="neu-btn w-10 h-10 rounded-full flex items-center justify-center text-[#258FAF]">
+                    <button onclick="window.playAudio()" class="neu-btn w-10 h-10 rounded-full flex items-center justify-center text-[#258FAF]">
                         <i class="fas fa-volume-up"></i>
                     </button>
-                    <button id="bookmarkBtn" class="neu-btn w-10 h-10 rounded-full flex items-center justify-center text-gray-400">
+                    <button id="bookmarkBtn" onclick="window.toggleBookmark()" class="neu-btn w-10 h-10 rounded-full flex items-center justify-center text-gray-400">
                         <i class="fas fa-bookmark"></i>
                     </button>
                 </div>
@@ -256,14 +263,14 @@
                 </div>
                 <h2 class="text-2xl font-bold mb-2 text-[#258FAF]">Review Mode</h2>
                 <p class="text-gray-500 mb-10 text-sm">保存した単語からランダムに出題</p>
-                <button id="startReviewBtn" class="neu-btn-primary px-10 py-4 rounded-2xl font-bold shadow-lg w-full max-w-xs transition-transform transform active:scale-95">
+                <button onclick="window.startReview()" class="neu-btn-primary px-10 py-4 rounded-2xl font-bold shadow-lg w-full max-w-xs transition-transform transform active:scale-95">
                     テストを開始
                 </button>
             </div>
 
             <div id="review-card-container" class="hidden flex-1 flex flex-col items-center justify-center relative pb-4">
                 <!-- Flashcard -->
-                <div id="flashcard" class="w-full max-w-sm h-[420px] relative card-flip cursor-pointer group">
+                <div id="flashcard" class="w-full max-w-sm h-[420px] relative card-flip cursor-pointer group" onclick="window.flipCard()">
                     <div id="flashcard-inner" class="card-inner w-full h-full relative">
                         <!-- Front -->
                         <div class="card-front absolute w-full h-full neu-flat rounded-3xl flex flex-col items-center justify-center p-8 text-center border-t border-white border-opacity-50">
@@ -284,7 +291,7 @@
                                 <div class="w-10 h-1 bg-[#258FAF] opacity-20 mx-auto mb-4 rounded-full"></div>
                                 <p id="test-tips" class="text-sm text-gray-500">Usage tips...</p>
                             </div>
-                            <button id="testAudioBtn" class="neu-btn w-12 h-12 rounded-full flex items-center justify-center text-[#258FAF] mt-4 mb-2">
+                            <button onclick="event.stopPropagation(); window.playAudio(currentTestWord)" class="neu-btn w-12 h-12 rounded-full flex items-center justify-center text-[#258FAF] mt-4 mb-2">
                                 <i class="fas fa-volume-up"></i>
                             </button>
                         </div>
@@ -293,10 +300,10 @@
 
                 <!-- Controls -->
                 <div id="review-controls" class="w-full max-w-sm flex space-x-4 mt-8 opacity-50 pointer-events-none transition-all duration-300">
-                    <button id="btnUnknown" class="flex-1 neu-btn py-4 rounded-2xl font-bold text-gray-500 hover:text-red-400">
+                    <button onclick="window.nextCard(false)" class="flex-1 neu-btn py-4 rounded-2xl font-bold text-gray-500 hover:text-red-400">
                         <i class="fas fa-times mr-2"></i>忘れた
                     </button>
-                    <button id="btnKnown" class="flex-1 neu-btn py-4 rounded-2xl font-bold text-gray-500 hover:text-[#258FAF]">
+                    <button onclick="window.nextCard(true)" class="flex-1 neu-btn py-4 rounded-2xl font-bold text-gray-500 hover:text-[#258FAF]">
                         <i class="fas fa-check mr-2"></i>覚えた
                     </button>
                 </div>
@@ -308,7 +315,7 @@
                 </div>
                 <h2 class="text-2xl font-bold mb-2 text-[#258FAF]">Finished!</h2>
                 <p class="text-gray-500 mb-8">お疲れ様でした。</p>
-                <button id="backHomeBtn" class="neu-btn px-8 py-3 rounded-xl text-[#258FAF] font-bold">ホームへ戻る</button>
+                <button onclick="window.switchTab('search')" class="neu-btn px-8 py-3 rounded-xl text-[#258FAF] font-bold">ホームへ戻る</button>
             </div>
         </div>
 
@@ -316,19 +323,19 @@
 
     <!-- Bottom Navigation -->
     <nav class="neu-flat h-20 rounded-t-3xl flex justify-around items-center z-20 pb-safe mx-0 absolute bottom-0 w-full">
-        <button id="navSearch" class="nav-btn flex flex-col items-center w-1/3 tab-active group cursor-pointer" data-target="search">
+        <button onclick="window.switchTab('search')" class="nav-btn flex flex-col items-center w-1/3 tab-active group cursor-pointer" data-target="search">
             <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-1 transition-all duration-200 group-[.tab-active]:neu-pressed">
                 <i class="fas fa-search text-lg"></i>
             </div>
             <span class="text-[10px] font-bold">検索</span>
         </button>
-        <button id="navReview" class="nav-btn flex flex-col items-center w-1/3 tab-inactive group cursor-pointer" data-target="review">
+        <button onclick="window.switchTab('review')" class="nav-btn flex flex-col items-center w-1/3 tab-inactive group cursor-pointer" data-target="review">
             <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-1 transition-all duration-200 group-[.tab-active]:neu-pressed">
                 <i class="fas fa-brain text-lg"></i>
             </div>
             <span class="text-[10px] font-bold">復習</span>
         </button>
-        <button id="navList" class="nav-btn flex flex-col items-center w-1/3 tab-inactive group cursor-pointer" data-target="list">
+        <button onclick="window.switchTab('list')" class="nav-btn flex flex-col items-center w-1/3 tab-inactive group cursor-pointer" data-target="list">
             <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-1 transition-all duration-200 group-[.tab-active]:neu-pressed">
                 <i class="fas fa-book text-lg"></i>
             </div>
@@ -337,412 +344,336 @@
     </nav>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // --- State Management ---
-            let apiKey = localStorage.getItem('aitan_api_key') || '';
-            let savedWords = JSON.parse(localStorage.getItem('aitan_words')) || [];
-            let currentResult = null;
-            let testQueue = [];
-            let currentTestIndex = 0;
-            let currentTestWord = '';
+        // Define global functions for robustness
+        
+        let apiKey = localStorage.getItem('aitan_api_key') || '';
+        let savedWords = JSON.parse(localStorage.getItem('aitan_words')) || [];
+        let currentResult = null;
+        let testQueue = [];
+        let currentTestIndex = 0;
+        let currentTestWord = '';
 
-            // --- Elements ---
-            const els = {
-                apiKeyModal: document.getElementById('apiKeyModal'),
-                apiKeyInput: document.getElementById('apiKeyInput'),
-                saveKeyBtn: document.getElementById('saveKeyBtn'),
-                headerKeyBtn: document.getElementById('headerKeyBtn'),
-                searchInput: document.getElementById('searchInput'),
-                triggerSearchBtn: document.getElementById('triggerSearchBtn'),
-                loading: document.getElementById('loading'),
-                resultCard: document.getElementById('resultCard'),
-                welcomeMsg: document.getElementById('welcome-msg'),
-                retryMsg: document.getElementById('retry-msg'),
-                
-                // Result Elements
-                resWord: document.getElementById('res-word'),
-                resPron: document.getElementById('res-pronunciation'),
-                resDef: document.getElementById('res-definition'),
-                resEx: document.getElementById('res-example'),
-                resTips: document.getElementById('res-tips'),
-                resSyn: document.getElementById('res-synonyms'),
-                playAudioBtn: document.getElementById('playAudioBtn'),
-                bookmarkBtn: document.getElementById('bookmarkBtn'),
+        window.openKeyModal = function() {
+            const input = document.getElementById('apiKeyInput');
+            input.value = apiKey;
+            document.getElementById('apiKeyModal').classList.remove('hidden');
+        };
 
-                // Navigation
-                navSearch: document.getElementById('navSearch'),
-                navReview: document.getElementById('navReview'),
-                navList: document.getElementById('navList'),
+        window.saveApiKey = function() {
+            const input = document.getElementById('apiKeyInput').value.trim();
+            if (input) {
+                apiKey = input;
+                localStorage.setItem('aitan_api_key', apiKey);
+                document.getElementById('apiKeyModal').classList.add('hidden');
+                window.showToast('設定完了');
+            } else {
+                alert('APIキーを入力してください');
+            }
+        };
 
-                // List
-                vocabList: document.getElementById('vocab-list'),
-                emptyListMsg: document.getElementById('empty-list-msg'),
-                listCount: document.getElementById('list-count'),
-
-                // Review
-                startReviewBtn: document.getElementById('startReviewBtn'),
-                flashcard: document.getElementById('flashcard'),
-                flashcardInner: document.getElementById('flashcard-inner'),
-                testWord: document.getElementById('test-word'),
-                testExHint: document.getElementById('test-example-hint'),
-                testDef: document.getElementById('test-definition'),
-                testTips: document.getElementById('test-tips'),
-                testAudioBtn: document.getElementById('testAudioBtn'),
-                btnUnknown: document.getElementById('btnUnknown'),
-                btnKnown: document.getElementById('btnKnown'),
-                backHomeBtn: document.getElementById('backHomeBtn'),
-            };
-
-            // --- Initialization ---
-            if (!apiKey) els.apiKeyModal.classList.remove('hidden');
-            updateListCount();
-
-            // --- Event Listeners ---
+        window.handleSearch = function() {
+            const input = document.getElementById('searchInput');
+            const term = input.value.trim();
+            if (!term) {
+                input.classList.add('shake');
+                setTimeout(() => input.classList.remove('shake'), 500);
+                return;
+            }
+            // Add enter key support
+            input.onkeypress = (e) => { if(e.key === 'Enter') window.handleSearch(); };
             
-            // API Key Events
-            els.saveKeyBtn.addEventListener('click', () => {
-                const key = els.apiKeyInput.value.trim();
-                if (key) {
-                    apiKey = key;
-                    localStorage.setItem('aitan_api_key', apiKey);
-                    els.apiKeyModal.classList.add('hidden');
-                    showToast('設定完了');
-                } else {
-                    alert('APIキーを入力してください');
-                }
+            window.searchWord(term);
+        };
+
+        // Attach Enter key handler on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const input = document.getElementById('searchInput');
+            input.addEventListener('keypress', (e) => {
+                if(e.key === 'Enter') window.handleSearch();
             });
-
-            // Key設定ボタン: 即座にモーダルを開く
-            els.headerKeyBtn.addEventListener('click', () => {
-                els.apiKeyInput.value = apiKey; // 現在のキーを表示
-                els.apiKeyModal.classList.remove('hidden');
-            });
-
-            // Search Events
-            els.triggerSearchBtn.addEventListener('click', handleSearch);
-            els.searchInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') handleSearch();
-            });
-
-            // Result Actions
-            els.playAudioBtn.addEventListener('click', () => playAudio());
-            els.bookmarkBtn.addEventListener('click', toggleBookmark);
-
-            // Navigation Events
-            els.navSearch.addEventListener('click', () => switchTab('search'));
-            els.navReview.addEventListener('click', () => switchTab('review'));
-            els.navList.addEventListener('click', () => switchTab('list'));
-
-            // Review Events
-            els.startReviewBtn.addEventListener('click', startReview);
-            els.flashcard.addEventListener('click', flipCard);
-            els.testAudioBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                playAudio(currentTestWord);
-            });
-            els.btnUnknown.addEventListener('click', () => nextCard(false));
-            els.btnKnown.addEventListener('click', () => nextCard(true));
-            els.backHomeBtn.addEventListener('click', () => switchTab('search'));
-
-            // --- Functions ---
-
-            function handleSearch() {
-                const term = els.searchInput.value.trim();
-                if (!term) {
-                    els.searchInput.classList.add('shake');
-                    setTimeout(() => els.searchInput.classList.remove('shake'), 500);
-                    return;
-                }
-                searchWord(term);
-            }
-
-            async function searchWord(term) {
-                if (!apiKey) {
-                    // キーがない場合のみモーダルを表示
-                    els.apiKeyModal.classList.remove('hidden');
-                    return;
-                }
-
-                // UI Reset & Lock
-                els.loading.classList.remove('hidden');
-                els.retryMsg.classList.add('hidden');
-                els.resultCard.classList.add('hidden');
-                els.welcomeMsg.classList.add('hidden');
-                els.searchInput.blur();
-                els.triggerSearchBtn.disabled = true; // 連打防止
-
-                const prompt = `
-                You are an expert language dictionary AI.
-                User input: "${term}"
-                Task: Provide a structured JSON response.
-                JSON Structure:
-                {
-                    "word": "Main word",
-                    "pronunciation": "IPA",
-                    "definition": "Definition in Japanese",
-                    "example": "Simple example sentence",
-                    "synonyms": ["synonym1", "synonym2"],
-                    "tips": "Usage tip in Japanese"
-                }
-                Return ONLY raw JSON. No markdown formatting.
-                `;
-
-                const models = ['gemini-1.5-flash', 'gemini-pro'];
-                let success = false;
-                let lastError = null;
-
-                for (const model of models) {
-                    try {
-                        console.log(`Trying ${model}...`);
-                        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-                        });
-
-                        const data = await response.json();
-
-                        if (!response.ok) {
-                             throw new Error(data.error?.message || `HTTP Error: ${response.status}`);
-                        }
-
-                        if (data.error) {
-                            if (data.error.code === 404 || data.error.message.toLowerCase().includes('not found')) {
-                                throw new Error('MODEL_NOT_FOUND');
-                            }
-                            throw new Error(data.error.message);
-                        }
-
-                        if (!data.candidates || !data.candidates[0].content) throw new Error('EMPTY_RESPONSE');
-
-                        let text = data.candidates[0].content.parts[0].text;
-                        // Clean markdown
-                        text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-                        // Find JSON object
-                        const jsonMatch = text.match(/\{[\s\S]*\}/);
-                        if (jsonMatch) text = jsonMatch[0];
-
-                        const result = JSON.parse(text);
-                        displayResult(result);
-                        success = true;
-                        break;
-
-                    } catch (e) {
-                        console.warn(e);
-                        lastError = e;
-                        if (e.message === 'MODEL_NOT_FOUND') {
-                            els.retryMsg.classList.remove('hidden');
-                            continue;
-                        }
-                        // Other errors, break and show alert
-                        break;
-                    }
-                }
-
-                if (!success) {
-                    els.loading.classList.add('hidden');
-                    els.welcomeMsg.classList.remove('hidden');
-                    
-                    let msg = lastError ? lastError.message : "Unknown error";
-                    // Alert the user clearly
-                    if (msg.includes('API key') || msg.includes('400')) {
-                         alert('APIキーが無効、または期限切れの可能性があります。\n右上の「Key設定」から正しいキーを確認してください。');
-                         // 勝手に戻らないようにする
-                    } else if (msg.includes('Failed to fetch')) {
-                        alert('通信エラーが発生しました。\nインターネット接続を確認してください。');
-                    } else {
-                        alert(`検索エラー: ${msg}`);
-                    }
-                }
-                
-                els.triggerSearchBtn.disabled = false; // 解除
-            }
-
-            function displayResult(data) {
-                currentResult = data;
-                els.resWord.textContent = data.word;
-                els.resPron.textContent = data.pronunciation || '';
-                els.resDef.textContent = data.definition;
-                els.resEx.textContent = `"${data.example}"`;
-                els.resTips.textContent = data.tips;
-
-                els.resSyn.innerHTML = '';
-                (data.synonyms || []).slice(0, 3).forEach(syn => {
-                    const span = document.createElement('span');
-                    span.className = 'neu-pressed px-3 py-1 rounded-lg text-xs text-gray-500';
-                    span.textContent = syn;
-                    els.resSyn.appendChild(span);
-                });
-
-                updateBookmarkBtn();
-                
-                // 表示切替
-                els.loading.classList.add('hidden');
-                els.welcomeMsg.classList.add('hidden'); // 念のため
-                els.resultCard.classList.remove('hidden');
-                
-                // 強制的にスクロール (少し遅延させてレイアウト確定後に行う)
-                setTimeout(() => {
-                    els.resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 300);
-            }
-
-            function playAudio(word = null) {
-                const target = word || (currentResult ? currentResult.word : '');
-                if (!target) return;
-                const ut = new SpeechSynthesisUtterance(target);
-                ut.lang = 'en-US';
-                window.speechSynthesis.speak(ut);
-            }
-
-            function toggleBookmark() {
-                if (!currentResult) return;
-                const idx = savedWords.findIndex(w => w.word === currentResult.word);
-                if (idx === -1) {
-                    savedWords.unshift({ ...currentResult, addedAt: Date.now() });
-                    showToast('保存しました');
-                } else {
-                    savedWords.splice(idx, 1);
-                    showToast('削除しました');
-                }
-                localStorage.setItem('aitan_words', JSON.stringify(savedWords));
-                updateBookmarkBtn();
-                updateListCount();
-            }
-
-            function updateBookmarkBtn() {
-                if (!currentResult) return;
-                const isSaved = savedWords.some(w => w.word === currentResult.word);
-                if (isSaved) {
-                    els.bookmarkBtn.classList.add('text-yellow-400', 'neu-pressed');
-                    els.bookmarkBtn.classList.remove('text-gray-400');
-                } else {
-                    els.bookmarkBtn.classList.remove('text-yellow-400', 'neu-pressed');
-                    els.bookmarkBtn.classList.add('text-gray-400');
-                }
-            }
-
-            function updateListCount() {
-                els.listCount.textContent = `(${savedWords.length})`;
-            }
-
-            function switchTab(tab) {
-                ['search', 'list', 'review'].forEach(t => {
-                    document.getElementById(`view-${t}`).classList.add('hidden');
-                    const btn = document.querySelector(`[data-target="${t}"]`);
-                    btn.classList.remove('tab-active');
-                    btn.classList.add('tab-inactive');
-                });
-                
-                document.getElementById(`view-${tab}`).classList.remove('hidden');
-                const targetBtn = document.querySelector(`[data-target="${tab}"]`);
-                targetBtn.classList.add('tab-active');
-                targetBtn.classList.remove('tab-inactive');
-
-                if (tab === 'list') renderList();
-                if (tab === 'review') resetReview();
-            }
-
-            function renderList() {
-                els.vocabList.innerHTML = '';
-                if (savedWords.length === 0) {
-                    els.emptyListMsg.classList.remove('hidden');
-                    return;
-                }
-                els.emptyListMsg.classList.add('hidden');
-
-                savedWords.forEach(item => {
-                    const div = document.createElement('div');
-                    div.className = 'neu-flat p-5 rounded-2xl flex justify-between items-center cursor-pointer active:scale-[0.99] transition-transform';
-                    div.innerHTML = `
-                        <div class="overflow-hidden">
-                            <div class="font-bold text-lg text-[#258FAF]">${item.word}</div>
-                            <div class="text-xs text-gray-500 truncate w-full mt-1">${item.definition}</div>
-                        </div>
-                        <button class="del-btn neu-btn w-10 h-10 rounded-full flex items-center justify-center text-gray-400 hover:text-red-400 flex-shrink-0 ml-4">
-                            <i class="fas fa-trash-alt text-sm pointer-events-none"></i>
-                        </button>
-                    `;
-                    
-                    div.addEventListener('click', (e) => {
-                        if (e.target.closest('.del-btn')) {
-                            e.stopPropagation();
-                            if(confirm(`「${item.word}」を削除しますか？`)) {
-                                savedWords = savedWords.filter(w => w.word !== item.word);
-                                localStorage.setItem('aitan_words', JSON.stringify(savedWords));
-                                renderList();
-                                updateListCount();
-                            }
-                        } else {
-                            switchTab('search');
-                            displayResult(item);
-                        }
-                    });
-                    els.vocabList.appendChild(div);
-                });
-            }
-
-            // Review Logic
-            function resetReview() {
-                document.getElementById('review-setup').classList.remove('hidden');
-                document.getElementById('review-card-container').classList.add('hidden');
-                document.getElementById('review-finish').classList.add('hidden');
-            }
-
-            function startReview() {
-                if (savedWords.length === 0) {
-                    alert('単語帳が空です。検索して保存してください。');
-                    return;
-                }
-                testQueue = [...savedWords].sort(() => Math.random() - 0.5);
-                currentTestIndex = 0;
-                document.getElementById('review-setup').classList.add('hidden');
-                document.getElementById('review-card-container').classList.remove('hidden');
-                showCard();
-            }
-
-            function showCard() {
-                if (currentTestIndex >= testQueue.length) {
-                    document.getElementById('review-card-container').classList.add('hidden');
-                    document.getElementById('review-finish').classList.remove('hidden');
-                    return;
-                }
-                const item = testQueue[currentTestIndex];
-                currentTestWord = item.word;
-                
-                els.flashcardInner.classList.remove('flipped');
-                document.getElementById('review-controls').classList.add('opacity-50', 'pointer-events-none');
-                document.getElementById('review-controls').classList.remove('opacity-100', 'pointer-events-auto');
-
-                els.testWord.textContent = item.word;
-                const masked = item.example.replace(new RegExp(item.word, 'gi'), '_______');
-                els.testExHint.textContent = `"${masked}"`;
-                els.testDef.textContent = item.definition;
-                els.testTips.textContent = item.tips;
-            }
-
-            function flipCard() {
-                if (!els.flashcardInner.classList.contains('flipped')) {
-                    els.flashcardInner.classList.add('flipped');
-                    playAudio(currentTestWord);
-                    document.getElementById('review-controls').classList.remove('opacity-50', 'pointer-events-none');
-                    document.getElementById('review-controls').classList.add('opacity-100', 'pointer-events-auto');
-                }
-            }
-
-            function nextCard() {
-                currentTestIndex++;
-                showCard();
-            }
-
-            function showToast(msg) {
-                const toast = document.createElement('div');
-                toast.className = 'fixed bottom-24 left-1/2 transform -translate-x-1/2 neu-flat px-6 py-3 rounded-full text-sm text-[#258FAF] font-bold z-50 fade-in shadow-lg';
-                toast.textContent = msg;
-                document.body.appendChild(toast);
-                setTimeout(() => toast.remove(), 3000);
-            }
+            if(!apiKey) document.getElementById('apiKeyModal').classList.remove('hidden');
+            window.updateListCount();
         });
+
+        window.searchWord = async function(term) {
+            if (!apiKey) {
+                window.openKeyModal();
+                return;
+            }
+
+            // UI Reset & Lock
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('retry-msg').classList.add('hidden');
+            document.getElementById('resultCard').classList.add('hidden');
+            document.getElementById('welcome-msg').classList.add('hidden');
+            document.getElementById('searchInput').blur();
+            document.getElementById('triggerSearchBtn').disabled = true;
+
+            const prompt = `
+            You are an expert language dictionary AI.
+            User input: "${term}"
+            Task: Provide a structured JSON response.
+            JSON Structure:
+            {
+                "word": "Main word",
+                "pronunciation": "IPA",
+                "definition": "Definition in Japanese",
+                "example": "Simple example sentence",
+                "synonyms": ["synonym1", "synonym2"],
+                "tips": "Usage tip in Japanese"
+            }
+            Return ONLY raw JSON. No markdown formatting.
+            `;
+
+            // フォールバック用のモデルリスト（gemini-1.5-flashを最初に試す）
+            const models = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-1.0-pro'];
+            let success = false;
+            let lastError = null;
+
+            for (const model of models) {
+                try {
+                    console.log(`Trying ${model}...`);
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                         throw new Error(data.error?.message || `HTTP Error: ${response.status}`);
+                    }
+
+                    if (data.error) {
+                        // エラーがあれば次のモデルへ
+                        throw new Error(data.error.message);
+                    }
+
+                    if (!data.candidates || !data.candidates[0].content) throw new Error('EMPTY_RESPONSE');
+
+                    let text = data.candidates[0].content.parts[0].text;
+                    text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+                    const jsonMatch = text.match(/\{[\s\S]*\}/);
+                    if (jsonMatch) text = jsonMatch[0];
+
+                    const result = JSON.parse(text);
+                    window.displayResult(result);
+                    success = true;
+                    break;
+
+                } catch (e) {
+                    console.warn(`Failed with ${model}:`, e);
+                    lastError = e;
+                    document.getElementById('retry-msg').classList.remove('hidden');
+                    // Continue to next model
+                }
+            }
+
+            if (!success) {
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('welcome-msg').classList.remove('hidden');
+                
+                let msg = lastError ? lastError.message : "Unknown error";
+                
+                if (msg.includes('API key') || msg.includes('400')) {
+                     alert('APIキーが無効、または期限切れの可能性があります。\nKey設定から正しいキーを確認してください。');
+                } else if (msg.includes('Failed to fetch')) {
+                    alert('通信エラーが発生しました。\nインターネット接続を確認してください。');
+                } else {
+                    alert(`検索エラー: ${msg}\nしばらく待ってから再試行するか、APIキーを確認してください。`);
+                }
+            }
+            
+            document.getElementById('triggerSearchBtn').disabled = false;
+        };
+
+        window.displayResult = function(data) {
+            currentResult = data;
+            document.getElementById('res-word').textContent = data.word;
+            document.getElementById('res-pronunciation').textContent = data.pronunciation || '';
+            document.getElementById('res-definition').textContent = data.definition;
+            document.getElementById('res-example').textContent = `"${data.example}"`;
+            document.getElementById('res-tips').textContent = data.tips;
+
+            const synContainer = document.getElementById('res-synonyms');
+            synContainer.innerHTML = '';
+            (data.synonyms || []).slice(0, 3).forEach(syn => {
+                const span = document.createElement('span');
+                span.className = 'neu-pressed px-3 py-1 rounded-lg text-xs text-gray-500';
+                span.textContent = syn;
+                synContainer.appendChild(span);
+            });
+
+            window.updateBookmarkBtn();
+            
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('welcome-msg').classList.add('hidden');
+            const card = document.getElementById('resultCard');
+            card.classList.remove('hidden');
+            
+            setTimeout(() => {
+                card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 300);
+        };
+
+        window.playAudio = function(word = null) {
+            const target = word || (currentResult ? currentResult.word : '');
+            if (!target) return;
+            const ut = new SpeechSynthesisUtterance(target);
+            ut.lang = 'en-US';
+            window.speechSynthesis.speak(ut);
+        };
+
+        window.toggleBookmark = function() {
+            if (!currentResult) return;
+            const idx = savedWords.findIndex(w => w.word === currentResult.word);
+            if (idx === -1) {
+                savedWords.unshift({ ...currentResult, addedAt: Date.now() });
+                window.showToast('保存しました');
+            } else {
+                savedWords.splice(idx, 1);
+                window.showToast('削除しました');
+            }
+            localStorage.setItem('aitan_words', JSON.stringify(savedWords));
+            window.updateBookmarkBtn();
+            window.updateListCount();
+        };
+
+        window.updateBookmarkBtn = function() {
+            const btn = document.getElementById('bookmarkBtn');
+            if (!currentResult) return;
+            const isSaved = savedWords.some(w => w.word === currentResult.word);
+            if (isSaved) {
+                btn.classList.add('text-yellow-400', 'neu-pressed');
+                btn.classList.remove('text-gray-400');
+            } else {
+                btn.classList.remove('text-yellow-400', 'neu-pressed');
+                btn.classList.add('text-gray-400');
+            }
+        };
+
+        window.updateListCount = function() {
+            document.getElementById('list-count').textContent = `(${savedWords.length})`;
+        };
+
+        window.switchTab = function(tab) {
+            ['search', 'list', 'review'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.add('hidden');
+                const btn = document.querySelector(`[data-target="${t}"]`);
+                btn.classList.remove('tab-active');
+                btn.classList.add('tab-inactive');
+            });
+            
+            document.getElementById(`view-${tab}`).classList.remove('hidden');
+            const targetBtn = document.querySelector(`[data-target="${tab}"]`);
+            targetBtn.classList.add('tab-active');
+            targetBtn.classList.remove('tab-inactive');
+
+            if (tab === 'list') window.renderList();
+            if (tab === 'review') window.resetReview();
+        };
+
+        window.renderList = function() {
+            const container = document.getElementById('vocab-list');
+            container.innerHTML = '';
+            if (savedWords.length === 0) {
+                document.getElementById('empty-list-msg').classList.remove('hidden');
+                return;
+            }
+            document.getElementById('empty-list-msg').classList.add('hidden');
+
+            savedWords.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'neu-flat p-5 rounded-2xl flex justify-between items-center cursor-pointer active:scale-[0.99] transition-transform';
+                div.innerHTML = `
+                    <div class="overflow-hidden">
+                        <div class="font-bold text-lg text-[#258FAF]">${item.word}</div>
+                        <div class="text-xs text-gray-500 truncate w-full mt-1">${item.definition}</div>
+                    </div>
+                    <button class="del-btn neu-btn w-10 h-10 rounded-full flex items-center justify-center text-gray-400 hover:text-red-400 flex-shrink-0 ml-4">
+                        <i class="fas fa-trash-alt text-sm pointer-events-none"></i>
+                    </button>
+                `;
+                
+                div.addEventListener('click', (e) => {
+                    if (e.target.closest('.del-btn')) {
+                        e.stopPropagation();
+                        if(confirm(`「${item.word}」を削除しますか？`)) {
+                            savedWords = savedWords.filter(w => w.word !== item.word);
+                            localStorage.setItem('aitan_words', JSON.stringify(savedWords));
+                            window.renderList();
+                            window.updateListCount();
+                        }
+                    } else {
+                        window.switchTab('search');
+                        window.displayResult(item);
+                    }
+                });
+                container.appendChild(div);
+            });
+        };
+
+        window.resetReview = function() {
+            document.getElementById('review-setup').classList.remove('hidden');
+            document.getElementById('review-card-container').classList.add('hidden');
+            document.getElementById('review-finish').classList.add('hidden');
+        };
+
+        window.startReview = function() {
+            if (savedWords.length === 0) {
+                alert('単語帳が空です。検索して保存してください。');
+                return;
+            }
+            testQueue = [...savedWords].sort(() => Math.random() - 0.5);
+            currentTestIndex = 0;
+            document.getElementById('review-setup').classList.add('hidden');
+            document.getElementById('review-card-container').classList.remove('hidden');
+            window.showCard();
+        };
+
+        window.showCard = function() {
+            if (currentTestIndex >= testQueue.length) {
+                document.getElementById('review-card-container').classList.add('hidden');
+                document.getElementById('review-finish').classList.remove('hidden');
+                return;
+            }
+            const item = testQueue[currentTestIndex];
+            currentTestWord = item.word;
+            
+            document.getElementById('flashcard-inner').classList.remove('flipped');
+            document.getElementById('review-controls').classList.add('opacity-50', 'pointer-events-none');
+            document.getElementById('review-controls').classList.remove('opacity-100', 'pointer-events-auto');
+
+            document.getElementById('test-word').textContent = item.word;
+            const masked = item.example.replace(new RegExp(item.word, 'gi'), '_______');
+            document.getElementById('test-example-hint').textContent = `"${masked}"`;
+            document.getElementById('test-definition').textContent = item.definition;
+            document.getElementById('test-tips').textContent = item.tips;
+        };
+
+        window.flipCard = function() {
+            const inner = document.getElementById('flashcard-inner');
+            if (!inner.classList.contains('flipped')) {
+                inner.classList.add('flipped');
+                window.playAudio(currentTestWord);
+                document.getElementById('review-controls').classList.remove('opacity-50', 'pointer-events-none');
+                document.getElementById('review-controls').classList.add('opacity-100', 'pointer-events-auto');
+            }
+        };
+
+        window.nextCard = function() {
+            currentTestIndex++;
+            window.showCard();
+        };
+
+        window.showToast = function(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-24 left-1/2 transform -translate-x-1/2 neu-flat px-6 py-3 rounded-full text-sm text-[#258FAF] font-bold z-50 fade-in shadow-lg';
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        };
     </script>
 </body>
 </html>
