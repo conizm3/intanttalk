@@ -10,7 +10,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Wordrobe">
-
     <link rel="manifest" href="./manifest.json">
     
     <link rel="apple-touch-icon" href="https://conizm3.github.io/wordrobe/images/wordrobe-icon.png">
@@ -23,7 +22,6 @@
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
     <script src="https://unpkg.com/dexie@3.2.4/dist/dexie.min.js"></script>
 
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -42,8 +40,6 @@
             --shadow-light: #FFFFFF;
             --shadow-dark: #E6EFF5;
             --ad-height: 0px;
-            
-            /* iPhoneのノッチ対策変数 */
             --safe-top: env(safe-area-inset-top, 20px);
             --safe-bottom: env(safe-area-inset-bottom, 20px);
         }
@@ -55,31 +51,83 @@
             -webkit-tap-highlight-color: transparent;
             overscroll-behavior-y: none;
             
-            /* 全体の選択を禁止（アプリっぽくするため） */
+            /* アプリ全体の選択を無効化 */
             -webkit-user-select: none;
             user-select: none;
             
-            /* タップの反応を良くする設定 */
             touch-action: manipulation;
         }
 
-        /* 重要修正: 入力フォームだけは「絶対に」選択・入力できるように上書きする */
+        /* 修正: 入力フォームのみ選択・操作を「許可」する */
         input, textarea {
-            /* iOSで入力時に画面がズームされるのを防ぐ必須設定 */
             font-size: 16px !important;
             
-            /* 入力エリアを強制的に選択可能にする */
+            /* ここで上書きして有効にします */
             -webkit-user-select: text !important;
             user-select: text !important;
             
-            /* タップイベントを確実に受け取る */
             pointer-events: auto !important;
-            
-            /* 描画バグ防止 */
             transform: translate3d(0,0,0);
         }
 
-        /* Neumorphism Utilities */
+        .h-screen-safe {
+            height: 100vh;
+            height: 100dvh;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        header.custom-header {
+            width: 100%;
+            margin: 0 !important;
+            border-radius: 0 0 24px 24px !important;
+            padding-top: env(safe-area-inset-top, 20px) !important;
+            padding-bottom: 8px;
+            padding-left: 20px;
+            padding-right: 20px;
+            height: auto !important;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 50;
+            background: var(--bg-color);
+            box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light);
+        }
+
+        /* Nav */
+        nav.custom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            background: var(--bg-color);
+            padding-bottom: max(var(--safe-bottom), 15px) !important;
+            padding-top: 10px;
+            height: auto !important;
+            min-height: 80px;
+            border-radius: 24px 24px 0 0 !important;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0px -4px 10px var(--shadow-dark);
+            margin: 0 !important;
+        }
+
+        /* Main Content */
+        main.custom-main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            padding-bottom: calc(90px + var(--safe-bottom)) !important;
+            position: relative;
+            z-index: 0;
+        }
+
+        /* Utilities & Animations */
         .neu-flat {
             background: var(--bg-color);
             box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light);
@@ -109,7 +157,6 @@
             -webkit-appearance: none;
         }
 
-        /* Animations */
         .fade-in { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -160,65 +207,6 @@
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        .h-screen-safe {
-            height: 100vh;
-            height: 100dvh;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-        }
-
-       /* Header: 高さ調整版 */
-        header.custom-header {
-            width: 100%;
-            margin: 0 !important;
-            border-radius: 0 0 24px 24px !important;
-            
-            padding-top: env(safe-area-inset-top, 20px) !important;
-            padding-bottom: 8px;
-            padding-left: 20px;
-            padding-right: 20px;
-            
-            height: auto !important;
-            
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            
-            position: relative;
-            z-index: 50;
-            background: var(--bg-color);
-            box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light);
-        }
-
-        nav.custom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 50;
-            background: var(--bg-color);
-            padding-bottom: max(var(--safe-bottom), 15px) !important;
-            padding-top: 10px;
-            height: auto !important;
-            min-height: 80px;
-            border-radius: 24px 24px 0 0 !important;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            box-shadow: 0px -4px 10px var(--shadow-dark);
-            margin: 0 !important;
-        }
-
-        main.custom-main {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            padding-bottom: calc(90px + var(--safe-bottom)) !important;
-            position: relative;
-            z-index: 0;
-        }
     </style>
 </head>
 <body>
