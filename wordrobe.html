@@ -263,13 +263,10 @@
         };
 
         // --- API Functions ---
-      const fetchJishoData = async (term) => {
+
+        const fetchJishoData = async (term) => {
             try {
-                // ▼▼▼ ここにさっきコピーしたURLを貼る ▼▼▼
-                // 注: 末尾にスラッシュ(/)があってもなくても動きます
-                const workerUrl = "https://curly-math-7d23.shimz777.workers.dev/"; 
-                
-                const res = await fetch(`${workerUrl}?keyword=${encodeURIComponent(term)}`);
+                const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(`https://jisho.org/api/v1/search/words?keyword=${encodeURIComponent(term)}`)}`);
                 
                 if (!res.ok) return null;
                 return await res.json();
