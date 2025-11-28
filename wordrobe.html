@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta name="google-adsense-account" content="ca-pub-9941600818813301">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9941600818813301" crossorigin="anonymous"></script>
     
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
@@ -10,7 +10,7 @@
     <!-- Icon & OGP Settings -->
     <link rel="apple-touch-icon" href="https://conizm3.github.io/sanpo/wordrobe/images/wordrobe-icon.png">
     <link rel="icon" type="image/svg+xml" href="https://conizm3.github.io/sanpo/wordrobe/images/wordrobe-icon.png">
-    <meta property="og:title" content="wordrobe">
+    <meta property="og:title" content="Wordrobe">
     <meta property="og:description" content="シンプルな英単語帳">
     <meta property="og:image" content="https://conizm3.github.io/sanpo/wordrobe/images/wordrobe-ogp.png">
     
@@ -39,7 +39,8 @@
             --accent: #258FAF;
             --shadow-light: #FFFFFF;
             --shadow-dark: #E6EFF5;
-            --ad-height: 60px;
+            /* 広告削除に伴い高さを0に */
+            --ad-height: 0px;
         }
         body {
             font-family: 'Noto Sans JP', sans-serif;
@@ -117,42 +118,11 @@
             to { opacity: 0; transform: translateX(50px); } 
         }
         
-        /* Swipe Hint Animation (Icon) - Slide Left/Right Slower */
-        .animate-slide-hand-slow {
-            animation: slideHandSlow 3s infinite ease-in-out;
-        }
-        @keyframes slideHandSlow {
-            0% { transform: translateX(0); }
-            25% { transform: translateX(-15px); } /* Left */
-            50% { transform: translateX(0); }
-            75% { transform: translateX(15px); } /* Right */
-            100% { transform: translateX(0); }
-        }
-
         /* Flow Animation for Arrows */
-        .animate-flow-left {
-            animation: flowLeft 1.5s infinite;
-        }
-        @keyframes flowLeft {
-            0% { opacity: 0; transform: translateX(10px); }
-            50% { opacity: 1; transform: translateX(0); }
-            100% { opacity: 0; transform: translateX(-10px); }
-        }
-        .animate-flow-right {
-            animation: flowRight 1.5s infinite;
-        }
-        @keyframes flowRight {
-            0% { opacity: 0; transform: translateX(-10px); }
-            50% { opacity: 1; transform: translateX(0); }
-            100% { opacity: 0; transform: translateX(10px); }
-        }
-        
-        /* Flow Animation for X and O */
-        .animate-flow-x { animation: flowX 1.5s infinite; }
-        @keyframes flowX { 0% { opacity: 0; transform: translateX(10px); } 50% { opacity: 1; transform: translateX(0); } 100% { opacity: 0; transform: translateX(-10px); } }
-        
-        .animate-flow-o { animation: flowO 1.5s infinite; }
-        @keyframes flowO { 0% { opacity: 0; transform: translateX(-10px); } 50% { opacity: 1; transform: translateX(0); } 100% { opacity: 0; transform: translateX(10px); } }
+        .animate-flow-out-left { animation: flowOutLeft 1.5s infinite; }
+        @keyframes flowOutLeft { 0% { opacity: 1; transform: translateX(0); } 100% { opacity: 0; transform: translateX(-10px); } }
+        .animate-flow-out-right { animation: flowOutRight 1.5s infinite; }
+        @keyframes flowOutRight { 0% { opacity: 1; transform: translateX(0); } 100% { opacity: 0; transform: translateX(10px); } }
 
         /* Card Flip Fixed */
         .card-flip { perspective: 1000px; }
@@ -179,31 +149,13 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* 広告枠のスタイル */
-        .ad-slot {
-            background-color: #E2E8F0;
-            border: 2px dashed #CBD5E1;
-            color: #94A3B8;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-            font-weight: bold;
-            letter-spacing: 0.05em;
+        /* ナビゲーション位置調整: 広告削除のため最下部へ */
+        .nav-bottom {
+            bottom: 0 !important;
         }
-        .ad-footer-space {
-            height: var(--ad-height);
-            width: 100%;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            z-index: 60;
-        }
-        .nav-with-ad {
-            bottom: var(--ad-height) !important;
-        }
-        .main-with-ad {
-            padding-bottom: calc(80px + var(--ad-height) + 16px) !important;
+        /* メインコンテンツのパディング調整: ナビ(80px) + 余白 */
+        .main-padding {
+            padding-bottom: 96px !important;
         }
     </style>
 </head>
@@ -290,41 +242,8 @@
         };
 
         // --- Data Fetching Strategies ---
-        const fetchQuickData = async (term) => {
-            const isJp = isJapanese(term);
-            const langPair = isJp ? "ja|en" : "en|ja";
-            
-            const promises = [translateText(term, langPair)];
-            if (!isJp) {
-                if (!term.trim().includes(' ')) {
-                    promises.push(fetchFreeDictData(term));
-                }
-            }
-
-            const [trans, freeDictResult] = await Promise.all(promises);
-
-            if (!isJp && !term.trim().includes(' ') && (!freeDictResult || freeDictResult.length === 0 || (freeDictResult.title && freeDictResult.title === "No Definitions Found"))) {
-                throw new Error("NOT_FOUND");
-            }
-            
-            if (!trans) throw new Error("Translation failed");
-
-            return {
-                word: isJp ? trans : term,
-                translation: isJp ? term : trans,
-                meanings: [{
-                    partOfSpeech: "Translation",
-                    definitions: [{ ja: isJp ? term : trans, en: "", exEn: "", exJa: "" }]
-                }],
-                pronunciation: "",
-                synonyms: [],
-                audioUrl: "",
-                definition: isJp ? term : trans,
-                example: "",
-                tips: "検索中..."
-            };
-        };
-
+        // Note: QuickData is no longer used as per previous request to stop "forced translation"
+        
         const fetchRichData = async (term) => {
             let searchWord = term, isJpSearch = isJapanese(term), tips = "公開辞書/翻訳データ", primaryTrans = "", meanings = [], pronunciation = "", synonyms = [], audioUrl = "", jishoFound = false;
 
@@ -356,13 +275,13 @@
             } catch (e) {}
 
             if (!jishoFound) {
-                let trans = await translateText(term, isJpSearch ? "ja|en" : "en|ja");
-                
+                // 厳密なチェック: 英語入力でスペースを含まず、辞書にもない場合はエラー
                 if (!isJpSearch && !term.trim().includes(' ')) {
                      const fd = await fetchFreeDictData(term);
                      if (!fd || fd.length === 0) throw new Error("NOT_FOUND");
                 }
 
+                let trans = await translateText(term, isJpSearch ? "ja|en" : "en|ja");
                 if (!trans) throw new Error("NOT_FOUND");
                 
                 searchWord = isJpSearch ? trans : term;
@@ -515,9 +434,11 @@
             const searchIdRef = useRef(0);
             const isDataRichRef = useRef(false);
             const isMounted = useRef(true);
+            const inputRef = useRef(null);
 
             useEffect(() => {
                 isMounted.current = true;
+                if (inputRef.current) inputRef.current.focus();
                 return () => { isMounted.current = false; };
             }, []);
             
@@ -533,19 +454,7 @@
                 setLoadingMsg("検索中...");
                 setExternalResult(null);
 
-                fetchQuickData(term).then(quickData => {
-                    if (isMounted.current && currentId === searchIdRef.current && !isDataRichRef.current) {
-                        setExternalResult(quickData);
-                        setLoading(false);
-                    }
-                }).catch(err => {
-                    if (isMounted.current && currentId === searchIdRef.current && err.message === "NOT_FOUND") {
-                        setLoading(false);
-                        setIsEnriching(false);
-                        openAlert('見つかりませんでした。\nスペルを確認してください。');
-                    }
-                });
-
+                // 速報(QuickData)は廃止し、いきなりRichDataを取得する
                 try {
                     const coreData = await fetchRichData(term);
                     
@@ -603,11 +512,31 @@
             const currentData = externalResult;
             const isSaved = currentData && savedWords.some(w => w.word === currentData.word);
 
+            const resetToHome = () => {
+                searchIdRef.current++; 
+                setExternalResult(null); 
+                setTerm(''); 
+                setLoading(false);
+                setIsEnriching(false);
+                
+                const mainEl = document.querySelector('main');
+                if (mainEl) mainEl.scrollTop = 0;
+                if (inputRef.current) inputRef.current.focus();
+            };
+
             return (
                 <div className="fade-in">
                     <div className="mb-8 mt-2">
                         <form onSubmit={handleSearch} className="relative">
-                            <input type="text" value={term} onChange={(e) => setTerm(e.target.value)} className="neu-input w-full p-4 pl-12 text-lg text-[#258FAF] placeholder-gray-400" placeholder="単語を入力 (例 : rabbit / うさぎ)" />
+                            <input 
+                                ref={inputRef}
+                                type="text" 
+                                value={term} 
+                                onChange={(e) => setTerm(e.target.value)} 
+                                className="neu-input w-full p-4 pl-12 text-lg text-[#258FAF] placeholder-gray-400" 
+                                placeholder="単語を入力 (例 : rabbit / うさぎ)" 
+                                autoFocus 
+                            />
                             <i className="fas fa-search absolute left-5 top-5 text-gray-400"></i>
                             {!isFromList && currentData && <button type="button" onClick={() => {setExternalResult(null); setTerm('');}} className="absolute right-14 top-2 w-12 h-12 flex items-center justify-center text-gray-400 hover:text-gray-600"></button>}
                             <button type="submit" className="absolute right-2 top-2 bg-[#258FAF] text-white w-12 h-12 flex items-center justify-center rounded-xl shadow-md active:scale-95 transition-transform"><i className="fas fa-arrow-right"></i></button>
@@ -666,7 +595,14 @@
                         </div>
                     )}
                     
-                    <div className="ad-slot mt-8 mx-auto w-full max-w-[320px] h-[50px] ad-slot flex items-center justify-center text-xs rounded">広告スペース</div>
+                    {!isFromList && currentData && (
+                        <button
+                            onClick={resetToHome}
+                            className="fixed bottom-[100px] right-4 w-14 h-14 bg-[#258FAF] text-white rounded-full shadow-lg flex items-center justify-center z-[60] hover:bg-[#1d6f8c] transition-transform active:scale-95"
+                        >
+                            <i className="fas fa-search text-xl"></i>
+                        </button>
+                    )}
                 </div>
             );
         };
@@ -697,7 +633,6 @@
                             </div>
                         ))}
                     </div>
-                    <div className="ad-slot mt-8 mx-auto w-full max-w-[320px] h-[50px] ad-slot flex items-center justify-center text-xs rounded">広告スペース</div>
                 </div>
             );
         };
@@ -749,19 +684,16 @@
                }
             }, [index, queue.length, isStarted]);
 
-            // 修正: 復習テスト開始時（カードセット時）に、英→日モードなら表面で音声を再生する
             useEffect(() => {
                 if (isStarted && queue[index] && testMode === 'en_ja') {
-                     // カードが表示された直後に再生（少し遅延させると自然）
                      const timer = setTimeout(() => {
                          if (!isFlipped) speak(queue[index].word, queue[index].audioUrl);
                      }, 300);
                      return () => clearTimeout(timer);
                 }
-            }, [index, isStarted, testMode]); // isFlippedは依存に入れない（裏返した時に再再生しないため）
+            }, [index, isStarted, testMode]);
 
             const toggleFlip = () => {
-                // 修正: 裏返した時も再生する（既存ロジック維持）
                 if (!isFlipped) {
                      const wordToSpeak = queue[index].word;
                      speak(wordToSpeak, queue[index].audioUrl);
@@ -927,15 +859,30 @@
                         if (u) {
                             showToast('ログインしました');
                             try {
-                                // 修正: db.collection ではなく db_firebase.collection を使用
-                                const doc = await db_firebase.collection('users').doc(u.uid).get();
+                                const doc = await db.collection('users').doc(u.uid).get();
                                 if (doc.exists) {
                                     const cloudWords = doc.data().words || [];
-                                    setSavedWords(prev => {
-                                        const combined = [...cloudWords, ...prev];
-                                        const unique = Array.from(new Map(combined.map(item => [item.word, item])).values());
-                                        return unique;
+                                    // クラウド同期: クラウドデータをローカルDexieにマージする
+                                    await db.transaction('rw', db.words, async () => {
+                                        const localWords = await db.words.toArray();
+                                        const localWordMap = new Map(localWords.map(w => [w.word, w]));
+                                        const wordsToPut = [];
+                                        for (const cw of cloudWords) {
+                                            if (!localWordMap.has(cw.word)) {
+                                                const { id, ...wordWithoutId } = cw;
+                                                wordsToPut.push(wordWithoutId);
+                                            }
+                                        }
+                                        if (wordsToPut.length > 0) {
+                                            await db.words.bulkAdd(wordsToPut);
+                                        }
                                     });
+                                    
+                                    // State更新
+                                    const allWords = await db.words.toArray();
+                                    allWords.sort((a,b) => (b.addedAt || 0) - (a.addedAt || 0));
+                                    setSavedWords(allWords);
+                                    
                                     showToast('データを同期しました');
                                 }
                             } catch (err) {
@@ -1039,6 +986,10 @@
                 
                 const mainEl = document.querySelector('main');
                 if (mainEl) mainEl.scrollTop = 0;
+                
+                if (document.querySelector('input[type="text"]')) {
+                    document.querySelector('input[type="text"]').focus();
+                }
             };
 
             const handleBack = () => {
@@ -1147,13 +1098,8 @@
                         onCancel={() => setDialog(prev => ({ ...prev, isOpen: false }))}
                     />
 
-                    {/* Footer Ad */}
-                    <div className="ad-footer-space ad-slot">
-                        <p>広告スペース</p>
-                    </div>
-
                     {/* ナビゲーション: 固定配置 */}
-                    <nav className="neu-flat mx-4 h-20 flex justify-around items-center z-50 fixed left-0 right-0 bg-[#F8FAFC] nav-with-ad">
+                    <nav className="neu-flat mx-4 h-20 flex justify-around items-center z-50 fixed left-0 right-0 bg-[#F8FAFC] nav-with-ad nav-bottom">
                         <button onClick={() => resetToHome()} className={`nav-btn flex flex-col items-center w-1/3 ${tab === 'search' ? 'tab-active' : 'tab-inactive'}`}>
                             <div className={`w-10 h-10 flex items-center justify-center rounded-xl mb-1 transition-all ${tab === 'search' ? 'neu-pressed' : ''}`}>
                                 <i className="fas fa-search text-lg"></i>
@@ -1173,16 +1119,6 @@
                             <span className="text-[10px] font-bold">単語帳</span>
                         </button>
                     </nav>
-
-                    {/* フローティングボタン: 検索画面をリセットしてトップに戻る */}
-                    {!isFromList && searchResult && tab === 'search' && (
-                        <button
-                            onClick={resetToHome}
-                            className="fixed bottom-[100px] right-4 w-14 h-14 bg-[#258FAF] text-white rounded-full shadow-lg flex items-center justify-center z-[60] hover:bg-[#1d6f8c] transition-transform active:scale-95"
-                        >
-                            <i className="fas fa-search text-xl"></i>
-                        </button>
-                    )}
 
                     {toastMsg && <Toast msg={toastMsg} onClose={() => setToastMsg(null)} />}
                 </div>
