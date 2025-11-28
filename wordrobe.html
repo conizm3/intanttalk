@@ -291,7 +291,17 @@
             } catch (e) { return null; }
         };
 
+/* ▼▼▼ キャッシュ機能を追加した新しいコード ▼▼▼ */
+        
+        // 1. 検索結果を一時保存するキャッシュ（アプリを閉じるまで有効）
+        const searchCache = new Map();
+
         const fetchRichData = async (term) => {
+            // A. キャッシュチェック：すでに検索した単語ならAPIを呼ばずに即座に返す（高速化）
+            if (searchCache.has(term)) {
+                return searchCache.get(term);
+            }
+
             let searchWord = term, isJpSearch = isJapanese(term), tips = "公開辞書/翻訳データ", primaryTrans = "", meanings = [], pronunciation = "", synonyms = [], audioUrl = "", jishoFound = false;
 
             try {
@@ -336,8 +346,14 @@
                 tips = "翻訳ソフト";
             }
 
-            return { word: searchWord, translation: primaryTrans, meanings, pronunciation, synonyms: [], audioUrl: "", definition: meanings[0]?.definitions[0]?.ja || primaryTrans, example: "", tips };
+            const resultData = { word: searchWord, translation: primaryTrans, meanings, pronunciation, synonyms: [], audioUrl: "", definition: meanings[0]?.definitions[0]?.ja || primaryTrans, example: "", tips };
+            
+            // B. 結果をキャッシュに保存
+            searchCache.set(term, resultData);
+
+            return resultData;
         };
+        /* ▲▲▲ 書き換えここまで ▲▲▲ */
 
         const fetchEnrichment = async (currentData, term) => {
             const searchWord = currentData.word;
