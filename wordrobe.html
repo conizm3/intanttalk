@@ -199,9 +199,6 @@
             left: 0;
             z-index: 60;
         }
-        .nav-with-ad {
-            bottom: var(--ad-height) !important;
-        }
         .main-with-ad {
             padding-bottom: calc(80px + var(--ad-height) + 16px) !important;
         }
@@ -294,7 +291,18 @@
             const isJp = isJapanese(term);
             const langPair = isJp ? "ja|en" : "en|ja";
             
-            const trans = await translateText(term, langPair);
+            const promises = [translateText(term, langPair)];
+            if (!isJp) {
+                if (!term.trim().includes(' ')) {
+                    promises.push(fetchFreeDictData(term));
+                }
+            }
+
+            const [trans, freeDictResult] = await Promise.all(promises);
+
+            if (!isJp && !term.trim().includes(' ') && (!freeDictResult || freeDictResult.length === 0 || (freeDictResult.title && freeDictResult.title === "No Definitions Found"))) {
+                throw new Error("NOT_FOUND");
+            }
             
             if (!trans) throw new Error("Translation failed");
 
@@ -504,9 +512,11 @@
             const searchIdRef = useRef(0);
             const isDataRichRef = useRef(false);
             const isMounted = useRef(true);
+            const inputRef = useRef(null);
 
             useEffect(() => {
                 isMounted.current = true;
+                if (inputRef.current) inputRef.current.focus();
                 return () => { isMounted.current = false; };
             }, []);
             
@@ -592,11 +602,29 @@
             const currentData = externalResult;
             const isSaved = currentData && savedWords.some(w => w.word === currentData.word);
 
+            const resetToHome = () => {
+                searchIdRef.current++; 
+                setExternalResult(null); 
+                setTerm(''); 
+                setLoading(false);
+                setIsEnriching(false);
+                
+                const mainEl = document.querySelector('main');
+                if (mainEl) mainEl.scrollTop = 0;
+            };
+
             return (
                 <div className="fade-in">
                     <div className="mb-8 mt-2">
                         <form onSubmit={handleSearch} className="relative">
-                            <input type="text" value={term} onChange={(e) => setTerm(e.target.value)} className="neu-input w-full p-4 pl-12 text-lg text-[#258FAF] placeholder-gray-400" placeholder="単語を入力 (例 : rabbit / うさぎ)" />
+                            <input 
+                                ref={inputRef}
+                                type="text" 
+                                value={term} 
+                                onChange={(e) => setTerm(e.target.value)} 
+                                className="neu-input w-full p-4 pl-12 text-lg text-[#258FAF] placeholder-gray-400" 
+                                placeholder="単語を入力 (例 : rabbit / うさぎ)" 
+                            />
                             <i className="fas fa-search absolute left-5 top-5 text-gray-400"></i>
                             {!isFromList && currentData && <button type="button" onClick={() => {setExternalResult(null); setTerm('');}} className="absolute right-14 top-2 w-12 h-12 flex items-center justify-center text-gray-400 hover:text-gray-600"></button>}
                             <button type="submit" className="absolute right-2 top-2 bg-[#258FAF] text-white w-12 h-12 flex items-center justify-center rounded-xl shadow-md active:scale-95 transition-transform"><i className="fas fa-arrow-right"></i></button>
@@ -655,7 +683,16 @@
                         </div>
                     )}
                     
-                    <div className="ad-slot mt-8 mx-auto w-full max-w-[320px] h-[50px] ad-slot flex items-center justify-center text-xs rounded">広告スペース</div>
+                    {!isFromList && currentData && (
+                        <button
+                            onClick={resetToHome}
+                            className="fixed bottom-[100px] right-4 w-14 h-14 bg-[#258FAF] text-white rounded-full shadow-lg flex items-center justify-center z-[60] hover:bg-[#1d6f8c] transition-transform active:scale-95"
+                        >
+                            <i className="fas fa-search text-xl"></i>
+                        </button>
+                    )}
+                    
+                    {/* <div className="ad-slot mt-8 mx-auto w-full max-w-[320px] h-[50px] ad-slot flex items-center justify-center text-xs rounded">広告スペース</div> 削除済み */}
                 </div>
             );
         };
@@ -686,13 +723,14 @@
                             </div>
                         ))}
                     </div>
-                    <div className="ad-slot mt-8 mx-auto w-full max-w-[320px] h-[50px] ad-slot flex items-center justify-center text-xs rounded">広告スペース</div>
+                    {/* <div className="ad-slot mt-8 mx-auto w-full max-w-[320px] h-[50px] ad-slot flex items-center justify-center text-xs rounded">広告スペース</div> 削除済み */}
                 </div>
             );
         };
 
         const ReviewView = ({ savedWords, onFinish, openAlert }) => {
             const [isStarted, setIsStarted] = useState(false);
+            const [testMode, setTestMode] = useState('en_ja'); // 'en_ja' or 'ja_en'
             const [queue, setQueue] = useState([]);
             const [index, setIndex] = useState(0);
             const [isFlipped, setIsFlipped] = useState(false);
@@ -733,12 +771,15 @@
                    setQueue([]);
                    setIndex(0);
                    openAlert('復習完了！お疲れ様でした。');
-                   onFinish();
+                   onFinish(); // resetToHome called from App
                }
             }, [index, queue.length, isStarted]);
 
             const toggleFlip = () => {
-                if (!isFlipped) speak(queue[index].word, queue[index].audioUrl);
+                // ja_en mode: word is on back, so speak on flip if not flipped? No, word is answer.
+                // Audio is usually for the word.
+                const wordToSpeak = queue[index].word;
+                if (!isFlipped) speak(wordToSpeak, queue[index].audioUrl);
                 setIsFlipped(!isFlipped);
             };
 
@@ -777,7 +818,24 @@
                     <div className="h-full flex flex-col justify-center items-center text-center fade-in">
                         <div className="neu-flat w-40 h-40 rounded-full flex items-center justify-center mb-8 text-[#258FAF]"><i className="fas fa-graduation-cap text-6xl"></i></div>
                         <h2 className="text-2xl font-bold mb-2 text-[#258FAF]">Review Mode</h2>
-                        <p className="text-gray-500 mb-10 text-sm">保存した単語からランダムに出題</p>
+                        <p className="text-gray-500 mb-8 text-sm">保存した単語からランダムに出題</p>
+                        
+                        {/* Mode Selector */}
+                        <div className="flex gap-4 mb-10 bg-white p-1 rounded-xl shadow-inner">
+                            <button 
+                                onClick={() => setTestMode('en_ja')}
+                                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${testMode === 'en_ja' ? 'bg-[#258FAF] text-white shadow-md' : 'text-gray-400'}`}
+                            >
+                                英 → 日
+                            </button>
+                            <button 
+                                onClick={() => setTestMode('ja_en')}
+                                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${testMode === 'ja_en' ? 'bg-[#258FAF] text-white shadow-md' : 'text-gray-400'}`}
+                            >
+                                日 → 英
+                            </button>
+                        </div>
+
                         <button onClick={startReview} className="bg-[#258FAF] text-white px-10 py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-transform">テストを開始</button>
                     </div>
                 );
@@ -785,6 +843,10 @@
 
             const currentCard = queue[index];
             if (!currentCard) return null;
+
+            // Determine Front/Back content based on mode
+            const questionText = testMode === 'en_ja' ? currentCard.word : currentCard.translation;
+            const answerMain = testMode === 'en_ja' ? currentCard.translation : currentCard.word;
 
             return (
                 <div className="h-full flex flex-col items-center justify-center pb-4 relative fade-in overflow-hidden">
@@ -801,10 +863,13 @@
                             <div className="card-front neu-flat flex flex-col items-center justify-center p-8 text-center bg-[#F8FAFC] relative">
                                 <span className="absolute top-6 left-6 text-xs font-bold text-gray-400">QUESTION</span>
                                 <div className="flex-1 flex flex-col justify-center items-center w-full">
-                                    <h2 className="text-4xl font-bold text-[#258FAF] break-all">{currentCard.word}</h2>
-                                    <button onClick={(e) => { e.stopPropagation(); speak(currentCard.word, currentCard.audioUrl); }} className="neu-btn w-12 h-12 flex items-center justify-center rounded-full text-[#258FAF] mt-8">
-                                        <i className="fas fa-volume-up"></i>
-                                    </button>
+                                    <h2 className="text-4xl font-bold text-[#258FAF] break-all">{questionText}</h2>
+                                    {/* Show speaker only if English is on front */}
+                                    {testMode === 'en_ja' && (
+                                        <button onClick={(e) => { e.stopPropagation(); speak(currentCard.word, currentCard.audioUrl); }} className="neu-btn w-12 h-12 flex items-center justify-center rounded-full text-[#258FAF] mt-8">
+                                            <i className="fas fa-volume-up"></i>
+                                        </button>
+                                    )}
                                 </div>
                                 
                                 {/* Swipe Feedback Stamps */}
@@ -819,21 +884,21 @@
                                     <p className="text-xs text-gray-400 opacity-60">タップして答えを表示</p>
                                     {/* Swipe Guide */}
                                     <div className="md:hidden text-gray-300 flex items-center mt-1 gap-2 w-full justify-center px-4">
-                                        <span className="text-lg font-bold text-gray-400 opacity-80">✕</span>
+                                        <span className="text-lg font-bold text-gray-400 opacity-80 animate-flow-x">✕</span>
                                         <i className="fas fa-chevron-left animate-flow-left opacity-50 text-xs"></i>
                                         <div className="mx-2 flex flex-col items-center">
                                             <i className="fas fa-hand-pointer text-2xl text-[#258FAF] opacity-80 animate-slide-hand-slow"></i>
                                             <span className="text-[8px] text-gray-400 mt-1">swipe</span>
                                         </div>
                                         <i className="fas fa-chevron-right animate-flow-right opacity-50 text-xs"></i>
-                                        <span className="text-lg font-bold text-[#258FAF] opacity-80">◯</span>
+                                        <span className="text-lg font-bold text-[#258FAF] opacity-80 animate-flow-o">◯</span>
                                     </div>
                                 </div>
                             </div>
                             
                             <div className="card-back neu-flat flex flex-col items-center justify-center p-8 text-center bg-gradient-to-b from-[#F8FAFC] to-white">
                                 <span className="absolute top-6 left-6 text-xs font-bold text-[#258FAF]">ANSWER</span>
-                                <h3 className="text-2xl font-bold text-gray-700 mb-4">{currentCard.translation}</h3>
+                                <h3 className="text-2xl font-bold text-gray-700 mb-4">{answerMain}</h3>
                                 <div className="w-full overflow-y-auto max-h-32 text-sm text-gray-500 mb-4 px-4 space-y-2">
                                     {currentCard.meanings && currentCard.meanings.length > 0 
                                         ? currentCard.meanings.map((m, i) => (
@@ -845,24 +910,11 @@
                                 <button onClick={(e) => { e.stopPropagation(); speak(currentCard.word, currentCard.audioUrl); }} className="neu-btn w-12 h-12 flex items-center justify-center rounded-full mt-2 text-[#258FAF]">
                                     <i className="fas fa-volume-up"></i>
                                 </button>
-                                {/* 裏面ガイド */}
-                                <div className="absolute bottom-6 w-full flex flex-col items-center gap-2 md:hidden">
-                                    <div className="text-gray-300 flex items-center mt-1 gap-2 w-full justify-center px-4">
-                                        <span className="text-lg font-bold text-gray-400 opacity-80">✕</span>
-                                        <i className="fas fa-chevron-left animate-flow-left opacity-50 text-xs"></i>
-                                        <div className="mx-2 flex flex-col items-center">
-                                            <i className="fas fa-hand-pointer text-2xl text-[#258FAF] opacity-80 animate-slide-hand-slow"></i>
-                                            <span className="text-[8px] text-gray-400 mt-1">swipe</span>
-                                        </div>
-                                        <i className="fas fa-chevron-right animate-flow-right opacity-50 text-xs"></i>
-                                        <span className="text-lg font-bold text-[#258FAF] opacity-80">◯</span>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>
                     
-                    {/* PC Buttons (Hidden on mobile) */}
+                    {/* PC Buttons */}
                     <div className="w-full max-w-sm mt-4 md:mt-8 flex gap-4 hidden md:flex">
                         <button onClick={() => handleNext(false)} className="flex-1 bg-slate-200 text-slate-600 py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2"><i className="fas fa-times"></i> Unclear</button>
                         <button onClick={() => handleNext(true)} className="flex-1 bg-[#258FAF] text-white py-4 rounded-2xl font-bold shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2"><i className="far fa-circle"></i> Clear</button>
@@ -1057,14 +1109,14 @@
                         className="p-4 z-50 flex justify-between items-center h-16 neu-flat mx-4 mt-4 mb-2 relative cursor-pointer hover:opacity-80 transition-opacity"
                     >
                         <div className="flex-1 flex justify-center items-center" onClick={resetToHome}>
-                            <img src="wordloop-top.svg" alt="Wordloop" className="h-8" />
+                            <img src="https://conizm3.github.io/sanpo/wordrobe/images/wordrobe-top.png" alt="Wordrobe" className="h-8" />
                         </div>
                         <button onClick={(e) => { e.stopPropagation(); setIsSettingsOpen(true); }} className="absolute right-4 text-gray-400 hover:text-[#258FAF]">
                             <i className="fas fa-cog"></i>
                         </button>
                     </header>
 
-                    <main className="flex-1 overflow-y-auto p-4 pb-24 no-scrollbar relative z-0 main-with-ad">
+                    <main className="flex-1 overflow-y-auto p-4 pb-24 no-scrollbar relative z-0">
                         {tab === 'search' && (
                             <SearchView 
                                 key={searchViewKey} 
@@ -1113,13 +1165,11 @@
                         onCancel={() => setDialog(prev => ({ ...prev, isOpen: false }))}
                     />
 
-                    {/* Footer Ad */}
-                    <div className="ad-footer-space ad-slot">
-                        <p>広告スペース</p>
-                    </div>
+                    {/* Footer Ad removed from here as requested earlier, but just in case space is needed */}
 
                     {/* ナビゲーション: 固定配置 */}
-                    <nav className="neu-flat mx-4 h-20 flex justify-around items-center z-50 fixed left-0 right-0 bg-[#F8FAFC] nav-with-ad">
+                    <nav className="neu-flat mx-4 h-20 flex justify-around items-center z-50 fixed bottom-[60px] left-0 right-0 bg-[#F8FAFC] nav-with-ad" style={{bottom: '0'}}>
+                         {/* Note: style override bottom:0 because ad removed */}
                         <button onClick={() => resetToHome()} className={`nav-btn flex flex-col items-center w-1/3 ${tab === 'search' ? 'tab-active' : 'tab-inactive'}`}>
                             <div className={`w-10 h-10 flex items-center justify-center rounded-xl mb-1 transition-all ${tab === 'search' ? 'neu-pressed' : ''}`}>
                                 <i className="fas fa-search text-lg"></i>
@@ -1144,7 +1194,7 @@
                     {!isFromList && searchResult && tab === 'search' && (
                         <button
                             onClick={resetToHome}
-                            className="fixed bottom-[160px] right-4 w-14 h-14 bg-[#258FAF] text-white rounded-full shadow-lg flex items-center justify-center z-[60] hover:bg-[#1d6f8c] transition-transform active:scale-95"
+                            className="fixed bottom-[100px] right-4 w-14 h-14 bg-[#258FAF] text-white rounded-full shadow-lg flex items-center justify-center z-[60] hover:bg-[#1d6f8c] transition-transform active:scale-95"
                         >
                             <i className="fas fa-search text-xl"></i>
                         </button>
